@@ -5,7 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
-
+use App\Http\Controllers\PredictionController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -28,27 +28,22 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Admin Only Routes
     Route::middleware(['role:admin'])->group(function () {
-        Route::get('/predictions', function () {
-            return view('predictions.index');
-        })->name('predictions.index');
-        
-        Route::get('/overall-data', function () {
-            return view('overall.index');
-        })->name('overall.index');
+        Route::get('/predictions/data/{id}', [PredictionController::class, 'predictByProduct'])->name('predictions.data');
+       Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
     });
-    
+
     // Routes accessible by both admin and user
     Route::middleware(['permission:view-products'])->group(function () {
         Route::resource('products', ProductController::class);
     });
-    
+
     Route::middleware(['permission:view-sales'])->group(function () {
         Route::resource('sales', SaleController::class);
     });
-    
+
     Route::middleware(['permission:view-reports'])->group(function () {
         // Report routes will be added here
     });
