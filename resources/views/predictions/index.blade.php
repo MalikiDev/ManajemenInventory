@@ -47,14 +47,70 @@
     </div>
 
     <div class="bg-white p-4 rounded shadow">
-        <h3 class="font-semibold mb-2">Ringkasan Model</h3>
-        <div id="model-summary" class="text-sm">
-            <p><strong>Produk:</strong> <span id="m-product">-</span></p>
-            <p><strong>Observasi (n):</strong> <span id="m-n">-</span></p>
-            <p><strong>Slope (b1):</strong> <span id="m-slope">-</span></p>
-            <p><strong>Intercept (b0):</strong> <span id="m-intercept">-</span></p>
-            <p><strong>R²:</strong> <span id="m-r2">-</span></p>
-            <p><strong>RMSE:</strong> <span id="m-rmse">-</span></p>
+        <h3 class="font-semibold mb-4 text-lg text-gray-800 border-b pb-2">Ringkasan Model Regresi</h3>
+        <div id="model-summary" class="space-y-3">
+            <!-- Produk -->
+            <div class="bg-blue-50 p-3 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-600">Produk</span>
+                    <span id="m-product" class="text-sm font-bold text-blue-700">-</span>
+                </div>
+            </div>
+
+            <!-- Observasi -->
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Observasi (n)</span>
+                        <p class="text-xs text-gray-500 mt-0.5">Jumlah data historis</p>
+                    </div>
+                    <span id="m-n" class="text-sm font-bold text-gray-800">-</span>
+                </div>
+            </div>
+
+            <!-- Intercept -->
+            <div class="bg-green-50 p-3 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Intercept (b₀)</span>
+                        <p class="text-xs text-gray-500 mt-0.5">Nilai awal prediksi</p>
+                    </div>
+                    <span id="m-intercept" class="text-sm font-bold text-green-700">-</span>
+                </div>
+            </div>
+
+            <!-- Slope -->
+            <div class="bg-purple-50 p-3 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Slope (b₁)</span>
+                        <p class="text-xs text-gray-500 mt-0.5">Tingkat pertumbuhan per periode</p>
+                    </div>
+                    <span id="m-slope" class="text-sm font-bold text-purple-700">-</span>
+                </div>
+            </div>
+
+            <!-- R² -->
+            <div class="bg-yellow-50 p-3 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">R² (Koefisien Determinasi)</span>
+                        <p class="text-xs text-gray-500 mt-0.5">Akurasi model (0-1, semakin tinggi semakin baik)</p>
+                    </div>
+                    <span id="m-r2" class="text-sm font-bold text-yellow-700">-</span>
+                </div>
+            </div>
+
+            <!-- RMSE -->
+            <div class="bg-red-50 p-3 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">RMSE</span>
+                        <p class="text-xs text-gray-500 mt-0.5">Rata-rata kesalahan prediksi (semakin kecil semakin baik)</p>
+                    </div>
+                    <span id="m-rmse" class="text-sm font-bold text-red-700">-</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -67,11 +123,43 @@
             <tr>
                 <th class="px-3 py-2 border">Bulan</th>
                 <th class="px-3 py-2 border">Actual</th>
+                <th class="px-3 py-2 border">Persentase (%)</th>
                 <th class="px-3 py-2 border">Prediksi</th>
+                <th class="px-3 py-2 border">Keterangan</th>
             </tr>
         </thead>
         <tbody id="pred-table-body"></tbody>
     </table>
+</div>
+
+<div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+    <h3 class="font-semibold text-blue-900 mb-3"> Tentang Prediksi Penjualan</h3>
+    
+    <div class="text-sm text-gray-700 space-y-2">
+        <p><strong>Rumus Regresi Linier:</strong></p>
+        <div class="bg-white p-3 rounded border border-blue-200 font-mono text-center my-2">
+            y = b₀ + b₁x
+        </div>
+        <p class="text-xs text-gray-600">
+            Dimana: <strong>y</strong> = nilai prediksi, <strong>b₀</strong> = intercept, <strong>b₁</strong> = slope, <strong>x</strong> = periode waktu
+        </p>
+        
+        <div class="mt-4 pt-3 border-t border-blue-200">
+            <p><strong>Tujuan Prediksi:</strong></p>
+            <p class="mt-1">
+                Prediksi penjualan ini digunakan untuk <strong>menentukan kebutuhan bahan baku pembuatan produk di masa mendatang</strong>. 
+                Dengan mengetahui estimasi penjualan 12 bulan ke depan, manajemen dapat merencanakan pengadaan bahan baku secara optimal, 
+                menghindari kekurangan stok, dan meminimalkan biaya penyimpanan yang berlebihan.
+            </p>
+        </div>
+        
+        <div class="mt-3 pt-3 border-t border-blue-200">
+            <p class="text-xs text-gray-500">
+                <strong>Catatan:</strong> Persentase dihitung berdasarkan perubahan dari bulan sebelumnya. 
+                Keterangan menunjukkan tren naik/turun untuk membantu pengambilan keputusan.
+            </p>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -200,28 +288,78 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function renderTable(actualSeries, predictedSeries) {
+    function renderTable(actualSeries, predictedSeries, modelData) {
         const tbody = document.getElementById('pred-table-body');
         tbody.innerHTML = '';
 
         // first actual rows (should be 12 items from 2025)
-        actualSeries.forEach(a => {
+        actualSeries.forEach((a, idx) => {
             const tr = document.createElement('tr');
+            let percentage = '-';
+            let keterangan = 'Data aktual penjualan';
+            
+            if (idx > 0) {
+                const prev = actualSeries[idx - 1].actual;
+                const current = a.actual;
+                if (prev > 0) {
+                    const pct = ((current - prev) / prev * 100).toFixed(2);
+                    percentage = pct + '%';
+                    
+                    if (parseFloat(pct) > 0) {
+                        keterangan = `Data aktual, naik ${Math.abs(pct)}% dari bulan sebelumnya`;
+                    } else if (parseFloat(pct) < 0) {
+                        keterangan = `Data aktual, turun ${Math.abs(pct)}% dari bulan sebelumnya`;
+                    } else {
+                        keterangan = `Data aktual, stabil dari bulan sebelumnya`;
+                    }
+                }
+            }
+            
             tr.innerHTML = `
                 <td class="px-3 py-2 border">${formatMonthLabel(a.date)}</td>
                 <td class="px-3 py-2 border">${a.actual}</td>
+                <td class="px-3 py-2 border text-center">${percentage}</td>
                 <td class="px-3 py-2 border">-</td>
+                <td class="px-3 py-2 border text-sm text-gray-600">${keterangan}</td>
             `;
             tbody.appendChild(tr);
         });
 
         // then predicted rows (should be 12 items from 2026)
-        predictedSeries.forEach(p => {
+        predictedSeries.forEach((p, idx) => {
             const tr = document.createElement('tr');
+            let percentage = '-';
+            let keterangan = '';
+            
+            // Calculate period number (x value in regression)
+            const periodX = actualSeries.length + idx + 1;
+            const slope = modelData.slope || 0;
+            const intercept = modelData.intercept || 0;
+            
+            // Compare with previous value (either last actual or previous predicted)
+            let prev;
+            if (idx === 0 && actualSeries.length > 0) {
+                prev = actualSeries[actualSeries.length - 1].actual;
+            } else if (idx > 0) {
+                prev = predictedSeries[idx - 1].predicted;
+            }
+            
+            if (prev !== undefined && prev > 0) {
+                const current = p.predicted;
+                const pct = ((current - prev) / prev * 100).toFixed(2);
+                percentage = pct + '%';
+            }
+            
+            // Generate explanation based on regression formula
+            const trendWord = slope > 0 ? 'naik' : (slope < 0 ? 'turun' : 'stabil');
+            keterangan = `Hasil regresi: ${intercept.toFixed(2)} + (${slope.toFixed(2)} × ${periodX}) = ${p.predicted}. Tren ${trendWord}.`;
+            
             tr.innerHTML = `
                 <td class="px-3 py-2 border">${formatMonthLabel(p.date)}</td>
                 <td class="px-3 py-2 border">-</td>
+                <td class="px-3 py-2 border text-center">${percentage}</td>
                 <td class="px-3 py-2 border">${p.predicted}</td>
+                <td class="px-3 py-2 border text-sm text-gray-600">${keterangan}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -242,17 +380,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const actualSeries = data.actual_series || [];
         const predictedSeries = data.predicted_series || [];
-
-        buildChart(actualSeries, predictedSeries);
-        renderTable(actualSeries, predictedSeries);
-        renderSummary({
+        
+        const modelData = {
             product: data.product,
             n_observations: data.n_observations ?? data.n,
             slope: data.slope,
             intercept: data.intercept,
             r2: data.r2,
             rmse: data.rmse
-        });
+        };
+
+        buildChart(actualSeries, predictedSeries);
+        renderTable(actualSeries, predictedSeries, modelData);
+        renderSummary(modelData);
     }
 
     btnPredict.addEventListener('click', function() {

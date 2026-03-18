@@ -35,12 +35,21 @@ Route::middleware(['auth'])->group(function () {
        Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
     });
 
+    // Dashboard API for charts
+    Route::get('/api/dashboard/sales-chart', [DashboardController::class, 'getSalesChartData'])->name('api.dashboard.sales');
+
     // Routes accessible by both admin and user
     Route::middleware(['permission:view-products'])->group(function () {
         Route::resource('products', ProductController::class);
     });
 
     Route::middleware(['permission:view-sales'])->group(function () {
+        // Custom routes must be defined BEFORE resource routes
+        Route::get('/sales/export', [SaleController::class, 'export'])->name('sales.export');
+        Route::post('/sales/import', [SaleController::class, 'import'])->name('sales.import');
+        Route::get('/sales/template/download', [SaleController::class, 'downloadTemplate'])->name('sales.template');
+        
+        // Resource routes
         Route::resource('sales', SaleController::class);
     });
 

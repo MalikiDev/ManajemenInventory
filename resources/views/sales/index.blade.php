@@ -20,6 +20,22 @@
 </div>
 @endif
 
+@if(session('error'))
+<div class="mb-6 bg-red-50 border-2 border-red-500 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+    <div class="flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+        <span>{{ session('error') }}</span>
+    </div>
+    <button onclick="this.parentElement.remove()" class="text-red-700 hover:text-red-900">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+</div>
+@endif
+
 <!-- Filter Section -->
 <div class="bg-white rounded-xl border-2 border-bone-300 p-6 mb-6">
     <form method="GET" action="{{ route('sales.index') }}" class="space-y-4">
@@ -128,14 +144,34 @@
         <p class="text-sm text-gray-500">{{ $sales->total() }} data ditemukan</p>
     </div>
     
-    @can('create-sales')
-    <a href="{{ route('sales.create') }}" class="btn-primary flex items-center">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        Tambah Data Penjualan
-    </a>
-    @endcan
+    <div class="flex items-center space-x-3">
+        <!-- Export Button -->
+        <a href="{{ route('sales.export', request()->only(['start_date', 'end_date', 'date'])) }}" 
+           class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Export Excel
+        </a>
+
+        <!-- Import Button -->
+        <button onclick="document.getElementById('importModal').classList.remove('hidden')" 
+                class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            Import Excel
+        </button>
+
+        @can('create-sales')
+        <a href="{{ route('sales.create') }}" class="btn-primary flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Tambah Data Penjualan
+        </a>
+        @endcan
+    </div>
 </div>
 
 <!-- Sales Table -->
@@ -229,4 +265,62 @@
     {{ $sales->links() }}
 </div>
 @endif
+
+<!-- Import Modal -->
+<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl border-2 border-bone-300 p-6 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-black">Import Data Penjualan</h3>
+            <button onclick="document.getElementById('importModal').classList.add('hidden')" class="text-gray-500 hover:text-black">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form action="{{ route('sales.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-black mb-2">File Excel</label>
+                <input type="file" name="file" accept=".xlsx,.xls,.csv" required
+                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <p class="text-xs text-gray-500 mt-2">Format: .xlsx, .xls, atau .csv (max 2MB)</p>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p class="text-xs text-gray-700 mb-2"><strong>Format Excel yang diperlukan:</strong></p>
+                <ul class="text-xs text-gray-600 space-y-1 ml-4 list-disc">
+                    <li><strong>product_id</strong> atau <strong>nama_produk</strong>: ID atau nama produk</li>
+                    <li><strong>tanggal_penjualan</strong>: Format YYYY-MM-DD (contoh: 2026-01-15)</li>
+                    <li><strong>jumlah</strong>: Jumlah unit terjual (angka)</li>
+                </ul>
+                <div class="mt-3 pt-2 border-t border-blue-300">
+                    <p class="text-xs text-gray-700 mb-1"><strong>Produk yang tersedia:</strong></p>
+                    <div class="max-h-32 overflow-y-auto bg-white rounded p-2 text-xs">
+                        @foreach(\App\Models\Product::orderBy('name')->get() as $prod)
+                        <div class="py-1">
+                            <span class="font-mono text-gray-500">ID: {{ $prod->id }}</span> - 
+                            <span class="font-semibold text-gray-700">{{ $prod->name }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                <a href="{{ route('sales.template') }}" class="text-xs text-blue-600 hover:underline mt-2 inline-block">
+                    📥 Download Template Excel
+                </a>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3">
+                <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')"
+                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                    Upload & Import
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

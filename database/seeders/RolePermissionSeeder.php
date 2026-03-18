@@ -41,16 +41,16 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Create Admin role with all permissions
-        $adminRole = Role::create(['name' => 'admin']);
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $adminRole->syncPermissions(Permission::all());
 
         // Create User role with limited permissions
-        $userRole = Role::create(['name' => 'user']);
-        $userRole->givePermissionTo([
+        $userRole = Role::firstOrCreate(['name' => 'user']);
+        $userRole->syncPermissions([
             'view-products',
             'create-products',
             'edit-products',
@@ -64,19 +64,23 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // Create default admin user
-        $admin = User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-        ]);
-        $admin->assignRole('admin');
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password'),
+            ]
+        );
+        $admin->syncRoles(['admin']);
 
         // Create default user (karyawan)
-        $user = User::create([
-            'name' => 'Karyawan',
-            'email' => 'user@example.com',
-            'password' => Hash::make('password'),
-        ]);
-        $user->assignRole('user');
+        $user = User::firstOrCreate(
+            ['email' => 'user@example.com'],
+            [
+                'name' => 'Karyawan',
+                'password' => Hash::make('password'),
+            ]
+        );
+        $user->syncRoles(['user']);
     }
 }

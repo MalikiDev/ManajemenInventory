@@ -32,4 +32,46 @@ class DashboardController extends Controller
             'recentSales'
         ));
     }
+
+    public function getSalesChartData(Request $request)
+    {
+        $period = $request->get('period', '7'); // default 7 days
+        
+        $startDate = match($period) {
+            '7' => now()->subDays(7),
+            '30' => now()->subDays(30),
+            '365' => now()->subYear(),
+            default => now()->subDays(7)
+        };
+
+        $sales = \App\Models\Sale::where('sale_date', '>=', $startDate)
+            ->selectRaw('DATE(sale_date) as date, SUM(jumlah) as total')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        // Fill missing dates with zero
+        $dates = [];
+        $currentDate = $startDate->copy();
+        $endDate = now();
+
+        while ($currentDate <= $endDate) {
+            $dateStr = $currentDate->format('Y-m-d');
+            $saleData = $sales->firstWhere('date', $dateStr);
+            
+            $dates[] = [
+                'date' => $dateStr,
+                'label' => $currentDate->format('d M'),
+                'total' => $saleData ? (int)$saleData->total : 0
+            ];
+            
+            $currentDate->addDay();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $dates,
+            'period' => $period
+        ]);
+    }
 }

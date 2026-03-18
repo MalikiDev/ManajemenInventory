@@ -80,19 +80,13 @@
                 <p class="text-sm text-gray-500">Data penjualan terbaru</p>
             </div>
             <div class="flex space-x-2">
-                <button class="px-3 py-1 text-xs font-semibold bg-black text-white rounded-lg">7 Hari</button>
-                <button class="px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-bone-100 rounded-lg">30 Hari</button>
-                <button class="px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-bone-100 rounded-lg">1 Tahun</button>
+                <button data-period="7" class="period-btn px-3 py-1 text-xs font-semibold bg-black text-white rounded-lg">7 Hari</button>
+                <button data-period="30" class="period-btn px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-bone-100 rounded-lg">30 Hari</button>
+                <button data-period="365" class="period-btn px-3 py-1 text-xs font-semibold text-gray-600 hover:bg-bone-100 rounded-lg">1 Tahun</button>
             </div>
         </div>
-        <div class="h-64 bg-bone-100 rounded-lg flex items-center justify-center border-2 border-bone-300">
-            <div class="text-center">
-                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                <p class="text-gray-500 font-medium">Chart akan ditampilkan di sini</p>
-                <p class="text-sm text-gray-400 mt-1">Integrasi dengan library charting</p>
-            </div>
+        <div class="h-64">
+            <canvas id="salesChart"></canvas>
         </div>
     </div>
 
@@ -218,4 +212,122 @@
         @endif
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let salesChart = null;
+    let currentPeriod = '7';
+
+    // Initialize chart
+    async function loadSalesChart(period) {
+        try {
+            const response = await fetch(`/api/dashboard/sales-chart?period=${period}`);
+            const result = await response.json();
+            
+            if (!result.success) {
+                console.error('Failed to load chart data');
+                return;
+            }
+
+            const data = result.data;
+            const labels = data.map(d => d.label);
+            const values = data.map(d => d.total);
+
+            const ctx = document.getElementById('salesChart').getContext('2d');
+
+            if (salesChart) {
+                salesChart.destroy();
+            }
+
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Penjualan (Unit)',
+                        data: values,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(59, 130, 246, 0.5)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            display: true,
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error loading sales chart:', error);
+        }
+    }
+
+    // Period button handlers
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active state
+            document.querySelectorAll('.period-btn').forEach(b => {
+                b.classList.remove('bg-black', 'text-white');
+                b.classList.add('text-gray-600', 'hover:bg-bone-100');
+            });
+            this.classList.add('bg-black', 'text-white');
+            this.classList.remove('text-gray-600', 'hover:bg-bone-100');
+
+            // Load new data
+            const period = this.getAttribute('data-period');
+            currentPeriod = period;
+            loadSalesChart(period);
+        });
+    });
+
+    // Load initial chart
+    loadSalesChart(currentPeriod);
+});
+</script>
 @endsection
