@@ -17,29 +17,36 @@ class SalesImport implements ToModel, WithHeadingRow, SkipsOnError, WithCustomCs
 
     protected $errors = [];
     protected $importedCount = 0;
+    protected $rowCount = 0;
 
     public function getCsvSettings(): array
     {
         return ['delimiter' => ';'];
     }
+    
+    public function headingRow(): int
+    {
+        return 1;
+    }
 
     public function model(array $row)
     {
-        // Bersihkan karakter \r dari Windows line endings
-        $row = array_map(fn($val) => is_string($val) ? trim($val, " \t\n\r\0\x0B") : $val, $row);
+        $this->rowCount++;
+    
+    $row = array_map(fn($val) => is_string($val) ? trim($val, " \t\n\r\0\x0B") : $val, $row);
 
-        // Skip baris kosong
-        if (empty($row['nama_produk'])) {
-            return null;
-        }
+    if (empty($row['nama_produk'])) {
+        \Log::info('Skipping empty row');
+        return null;
+    }
 
-        // Cari produk HANYA berdasarkan nama (abaikan product_id dari CSV)
-        $product = Product::whereRaw('LOWER(name) = LOWER(?)', [$row['nama_produk']])->first();
+    // ✅ Hapus pencarian by product_id — cari HANYA by nama
+    $product = Product::whereRaw('LOWER(name) = LOWER(?)', [$row['nama_produk']])->first();
 
-        if (!$product) {
-            $this->errors[] = "Produk tidak ditemukan: '{$row['nama_produk']}'";
-            return null;
-        }
+    if (!$product) {
+        $this->errors[] = "Produk tidak ditemukan: '{$row['nama_produk']}'";
+        return null;
+    }
 
         // Parse tanggal
         $dateValue = trim($row['tanggal_penjualan'] ?? '');
@@ -85,5 +92,10 @@ class SalesImport implements ToModel, WithHeadingRow, SkipsOnError, WithCustomCs
     public function getImportedCount(): int
     {
         return $this->importedCount;
+    }
+    
+    public function getRowCount(): int
+    {
+        return $this->rowCount;
     }
 }

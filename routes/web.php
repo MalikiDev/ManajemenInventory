@@ -32,7 +32,10 @@ Route::middleware(['auth'])->group(function () {
     // Admin Only Routes
     Route::middleware(['role:admin'])->group(function () {
         Route::get('/predictions/data/{id}', [PredictionController::class, 'predictByProduct'])->name('predictions.data');
-       Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
+        Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
+        Route::get('/predictions/history', [PredictionController::class, 'history'])->name('predictions.history');
+        Route::get('/predictions/show/{id}', [PredictionController::class, 'show'])->name('predictions.show');
+        Route::delete('/predictions/{id}', [PredictionController::class, 'destroy'])->name('predictions.destroy');
     });
 
     // Dashboard API for charts

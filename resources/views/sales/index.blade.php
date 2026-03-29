@@ -36,19 +36,49 @@
 </div>
 @endif
 
+@if($errors->any())
+<div class="mb-6 bg-red-50 border-2 border-red-500 text-red-700 px-4 py-3 rounded-lg">
+    <div class="flex items-center mb-2">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="font-semibold">Terjadi kesalahan validasi:</span>
+    </div>
+    <ul class="list-disc list-inside ml-7 text-sm">
+        @foreach($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</div>
+@endif
+
 <!-- Filter Section -->
 <div class="bg-white rounded-xl border-2 border-bone-300 p-6 mb-6">
     <form method="GET" action="{{ route('sales.index') }}" class="space-y-4">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-bold text-black">Filter Data Penjualan</h3>
-            @if(request()->hasAny(['start_date', 'end_date', 'date']))
+            @if(request()->hasAny(['start_date', 'end_date', 'date', 'product_id']))
             <a href="{{ route('sales.index') }}" class="text-sm text-gray-600 hover:text-black font-medium">
                 Reset Filter
             </a>
             @endif
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Product Filter -->
+            <div>
+                <label for="product_id" class="block text-sm font-semibold text-black mb-2">Produk</label>
+                <select id="product_id" name="product_id" class="input-field">
+                    <option value="">Semua Produk</option>
+                    @foreach($products as $product)
+                    <option value="{{ $product->id }}" {{ request('product_id') == $product->id ? 'selected' : '' }}>
+                        {{ $product->name }}
+                    </option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-gray-500 mt-1">Filter berdasarkan produk</p>
+            </div>
+            
             <!-- Single Date Filter -->
             <div>
                 <label for="date" class="block text-sm font-semibold text-black mb-2">Tanggal Spesifik</label>
@@ -83,7 +113,7 @@
 </div>
 
 <!-- Summary Cards -->
-@if(request()->hasAny(['start_date', 'end_date', 'date']))
+@if(request()->hasAny(['start_date', 'end_date', 'date', 'product_id']))
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
     <div class="bg-white rounded-xl border-2 border-bone-300 p-6">
         <div class="flex items-center justify-between mb-2">
@@ -95,6 +125,11 @@
             </div>
         </div>
         <p class="text-3xl font-bold text-black">{{ number_format($totalTransactions) }}</p>
+        @if(request('product_id'))
+        <p class="text-xs text-gray-500 mt-1">
+            {{ $products->firstWhere('id', request('product_id'))->name ?? 'Produk' }}
+        </p>
+        @endif
     </div>
 
     <div class="bg-white rounded-xl border-2 border-bone-300 p-6">
@@ -107,19 +142,34 @@
             </div>
         </div>
         <p class="text-3xl font-bold text-black">{{ number_format($totalJumlah) }}</p>
+        @if(request('product_id'))
+        <p class="text-xs text-gray-500 mt-1">unit</p>
+        @endif
     </div>
 
     <div class="bg-white rounded-xl border-2 border-bone-300 p-6">
         <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-medium text-gray-600">Periode</h3>
+            <h3 class="text-sm font-medium text-gray-600">
+                @if(request('product_id'))
+                    Produk
+                @else
+                    Periode
+                @endif
+            </h3>
             <div class="p-2 bg-purple-100 rounded-lg">
                 <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    @if(request('product_id'))
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    @else
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    @endif
                 </svg>
             </div>
         </div>
         <p class="text-sm font-semibold text-black">
-            @if(request('date'))
+            @if(request('product_id'))
+                {{ $products->firstWhere('id', request('product_id'))->name ?? 'N/A' }}
+            @elseif(request('date'))
                 {{ \Carbon\Carbon::parse(request('date'))->format('d M Y') }}
             @else
                 {{ request('start_date') ? \Carbon\Carbon::parse(request('start_date'))->format('d M Y') : 'Awal' }}
@@ -146,7 +196,7 @@
     
     <div class="flex items-center space-x-3">
         <!-- Export Button -->
-        <a href="{{ route('sales.export', request()->only(['start_date', 'end_date', 'date'])) }}" 
+        <a href="{{ route('sales.export', request()->only(['start_date', 'end_date', 'date', 'product_id'])) }}" 
            class="inline-flex items-center px-4 py-2 outline outline-2 outline-emerald-700 text-green-600 rounded-lg hover:bg-emerald-700 hover:text-white transition-all hover:-translate-y-1">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -278,13 +328,14 @@
             </button>
         </div>
 
-        <form action="{{ route('sales.import') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('sales.import') }}" method="POST" enctype="multipart/form-data" id="importForm" onsubmit="return handleImportSubmit(event)">
             @csrf
             
             <div class="mb-4">
                 <label class="block text-sm font-semibold text-black mb-2">File Excel</label>
-                <input type="file" name="file" accept=".xlsx,.xls,.csv" required
-                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <input type="file" name="file" id="importFile" accept=".xlsx,.xls,.csv" required
+                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    onchange="console.log('File selected:', this.files[0])">
                 <p class="text-xs text-gray-500 mt-2">Format: .xlsx, .xls, atau .csv (max 2MB)</p>
             </div>
 
@@ -307,7 +358,7 @@
                     </div>
                 </div>
                 <a href="{{ route('sales.template') }}" class="text-xs text-blue-600 hover:underline mt-2 inline-block">
-                    📥 Download Template Excel
+                     Download Template Excel
                 </a>
             </div>
 
@@ -316,11 +367,58 @@
                     class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                     Batal
                 </button>
-                <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                <button type="submit" id="submitBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
                     Upload & Import
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+function handleImportSubmit(event) {
+    const fileInput = document.getElementById('importFile');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    console.log('Form submitted');
+    console.log('File input:', fileInput);
+    console.log('Files:', fileInput.files);
+    
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Silakan pilih file terlebih dahulu!');
+        event.preventDefault();
+        return false;
+    }
+    
+    const file = fileInput.files[0];
+    console.log('File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+    });
+    
+    // Check file size (2MB = 2097152 bytes)
+    if (file.size > 2097152) {
+        alert('Ukuran file terlalu besar! Maksimal 2MB');
+        event.preventDefault();
+        return false;
+    }
+    
+    // Check file extension
+    const allowedExtensions = ['xlsx', 'xls', 'csv'];
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (!allowedExtensions.includes(fileExtension)) {
+        alert('Format file tidak didukung! Gunakan .xlsx, .xls, atau .csv');
+        event.preventDefault();
+        return false;
+    }
+    
+    // Disable submit button to prevent double submission
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Mengupload...';
+    
+    console.log('Form validation passed, submitting...');
+    return true;
+}
+</script>
 @endsection

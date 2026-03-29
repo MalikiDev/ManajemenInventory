@@ -14,17 +14,24 @@ class SalesExport implements FromCollection, WithHeadings, WithMapping, WithStyl
     protected $startDate;
     protected $endDate;
     protected $date;
+    protected $productId;
 
-    public function __construct($startDate = null, $endDate = null, $date = null)
+    public function __construct($startDate = null, $endDate = null, $date = null, $productId = null)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->date = $date;
+        $this->productId = $productId;
     }
 
     public function collection()
     {
         $query = Sale::with('product');
+
+        // Filter by product
+        if ($this->productId) {
+            $query->where('product_id', $this->productId);
+        }
 
         if ($this->date) {
             $query->whereDate('sale_date', $this->date);

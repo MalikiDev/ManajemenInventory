@@ -134,4 +134,43 @@ class PredictionController extends Controller
         $products = Product::orderBy('name')->get(['id', 'name']);
         return view('predictions.index', compact('products'));
     }
+    
+    public function history()
+    {
+        $predictions = Prediction::with('product')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        
+        return view('predictions.history', compact('predictions'));
+    }
+    
+    public function show($id)
+    {
+        $prediction = Prediction::with('product')->findOrFail($id);
+        
+        return response()->json([
+            'id' => $prediction->id,
+            'product' => [
+                'id' => $prediction->product->id,
+                'name' => $prediction->product->name,
+            ],
+            'start_year' => $prediction->start_year,
+            'horizon' => $prediction->horizon,
+            'slope' => $prediction->slope,
+            'intercept' => $prediction->intercept,
+            'r2' => $prediction->r2,
+            'rmse' => $prediction->rmse,
+            'predicted_values' => $prediction->predicted_values,
+            'created_at' => $prediction->created_at->format('d M Y H:i'),
+        ]);
+    }
+    
+    public function destroy($id)
+    {
+        $prediction = Prediction::findOrFail($id);
+        $prediction->delete();
+        
+        return redirect()->route('predictions.history')
+            ->with('success', 'Data prediksi berhasil dihapus!');
+    }
 }
